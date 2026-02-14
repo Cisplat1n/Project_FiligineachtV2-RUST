@@ -17,8 +17,6 @@ High-performance quartet analysis for detecting reticulation events in phylogene
 quartet-rs/
 │
 ├── Cargo.toml
-├── benches/
-│   └── benchmarks.rs
 │
 ├── src/
 │   ├── lib.rs                  # Public API
@@ -57,11 +55,17 @@ quartet-rs/
 │       ├── memory.rs           # Memory management
 │       └── parallel.rs         # Parallel utilities
 │
+├── tests/
+│   ├── tree_stage.rs
+│   ├── quartet_stage.rs
+│   ├── resolution_stage.rs
+│   └── e2e_pipeline.rs
+│
 └── python/
     ├── pyproject.toml
+    ├── Cargo.toml
     ├── src/
-    │   └── lib.rs              # PyO3 bindings (minimal)
-    └── visualize.py            # PhySquirrel wrapper
+        └── lib.rs              # PyO3 bindings (minimal)
 ```
 
 ### Build

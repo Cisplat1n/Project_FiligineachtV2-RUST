@@ -1,6 +1,10 @@
-pub mod tree;
-pub mod quartet;
-pub mod resolution;
-pub mod rooting;
-pub mod export;
-pub mod utils;
+mod tree;
+mod quartet;
+mod resolution;
+mod rooting;
+mod export;
+mod utils;
+
+pub mod pipeline;
+
+pub use pipeline::infer_network;
