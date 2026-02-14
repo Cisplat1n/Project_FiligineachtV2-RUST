@@ -12,6 +12,8 @@ High-performance quartet analysis for detecting reticulation events in phylogene
 ## 🦀 **Complete Rust Implementation**
 
 ### **Project Structure**
+
+```text
 quartet-rs/
 │
 ├── Cargo.toml
@@ -44,7 +46,7 @@ quartet-rs/
 │   │   ├── mod.rs
 │   │   ├── mad.rs              # MAD rooting
 │   │   ├── reconciliation.rs   # Species tree reconciliation
-│   │   └── discordance.rs      # Discordance‑based
+│   │   └── discordance.rs      # Discordance-based
 │   │
 │   ├── export/
 │   │   ├── mod.rs
@@ -60,6 +62,7 @@ quartet-rs/
     ├── src/
     │   └── lib.rs              # PyO3 bindings (minimal)
     └── visualize.py            # PhySquirrel wrapper
+```
 
 ### Build
 
