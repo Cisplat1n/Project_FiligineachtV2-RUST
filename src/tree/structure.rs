@@ -38,6 +38,76 @@ impl Tree {
         self.print_node_branches(self.root, "", true);
     }
 
+    pub fn is_leaf(&self, node_id: NodeId) -> bool {
+        self.nodes[node_id].children.is_empty()
+    }
+
+    pub fn parent(&self, node_id: NodeId) -> Option<NodeId> {
+        self.nodes[node_id].parent
+    }
+
+    pub fn children(&self, node_id: NodeId) -> &[NodeId] {
+        &self.nodes[node_id].children
+    }
+
+    pub fn leaves(&self) -> Vec<NodeId> {
+        self.nodes
+            .iter()
+            .enumerate()
+            .filter(|(_, node)| node.children.is_empty())
+            .map(|(i, _)| i)
+            .collect()
+    }
+
+    pub fn preorder(&self) -> Vec<NodeId> {
+        let mut result = Vec::new();
+        self.preorder_rec(self.root, &mut result);
+        result
+    }
+
+    fn preorder_rec(&self, node_id: NodeId, result: &mut Vec<NodeId>) {
+        result.push(node_id);
+
+        for &child in &self.nodes[node_id].children {
+            self.preorder_rec(child, result);
+        }
+    }
+
+    pub fn postorder(&self) -> Vec<NodeId> {
+    let mut result = Vec::new();
+    self.postorder_rec(self.root, &mut result);
+    result
+    }
+
+    fn postorder_rec(&self, node_id: NodeId, result: &mut Vec<NodeId>) {
+        for &child in &self.nodes[node_id].children {
+            self.postorder_rec(child, result);
+        }
+
+        result.push(node_id);
+    }
+
+    pub fn ancestors(&self, node_id: NodeId) -> Vec<NodeId> {
+    let mut result = Vec::new();
+    let mut current = Some(node_id);
+
+    while let Some(id) = current {
+        result.push(id);
+        current = self.nodes[id].parent;
+    }
+
+    result
+    }
+
+    pub fn lca(&self, a: NodeId, b: NodeId) -> Option<NodeId> {
+        let ancestors_a = self.ancestors(a);
+        let ancestors_b = self.ancestors(b);
+
+        ancestors_a
+            .into_iter()
+            .find(|id| ancestors_b.contains(id))
+    }
+
     fn print_node_branches(&self, node_id: NodeId, prefix: &str, is_root: bool) {
         let node = &self.nodes[node_id];
         let label = node.label.as_deref().unwrap_or("internal");
