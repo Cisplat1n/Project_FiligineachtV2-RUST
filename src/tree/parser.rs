@@ -48,7 +48,23 @@ pub fn parse_nwk(input: &str) -> Result<Tree, ParseError> { //
             ')' => {
                 let node_id = stack.pop().ok_or(ParseError::UnbalancedParentheses)?;
 
-                // check for branch length
+                // Check if there is a label for this internal node
+                if let Some(&next) = chars.peek() {
+                    if next != ':' && next != ',' && next != ')' && next != ';' {
+                        let mut label = String::new();
+
+                        while let Some(&c) = chars.peek() {
+                            if c == ':' || c == ',' || c == ')' || c == ';' {
+                                break;
+                            }
+                            label.push(chars.next().unwrap());
+                        }
+
+                        nodes[node_id].label = Some(label);
+                    }
+                }
+
+                // Check for branch length
                 if let Some(&':') = chars.peek() {
                     chars.next(); // consume ':'
 
@@ -68,7 +84,6 @@ pub fn parse_nwk(input: &str) -> Result<Tree, ParseError> { //
                     nodes[node_id].length_to_parent = Some(length);
                 }
             }
-
             ',' => continue, // A comma indicates a sibling node, so we simply continue to the next character without doing anything special.
 
             ';' => break, // A semicolon indicates the end of the tree definition, so we break out of the loop.
