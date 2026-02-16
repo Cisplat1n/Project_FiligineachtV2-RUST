@@ -35,40 +35,58 @@ impl Tree {
 // Fully AI generated code for printing the tree structure in an ASCII format. This method recursively prints each node and its children, using indentation and connectors to visually represent the tree structure. The label and branch length (if available) are also displayed for each node.
 impl Tree {
     pub fn print_ascii(&self) {
-        self.print_node(self.root, "", true);
+        self.print_node_branches(self.root, "", true);
     }
 
-    fn print_node(&self, node_id: NodeId, prefix: &str, is_last: bool) {
+    fn print_node_branches(&self, node_id: NodeId, prefix: &str, is_root: bool) {
         let node = &self.nodes[node_id];
-
-        let connector = if prefix.is_empty() {
-            ""
-        } else if is_last {
-            "└── "
-        } else {
-            "├── "
-        };
-
         let label = node.label.as_deref().unwrap_or("internal");
-
         let length = match node.length_to_parent {
-            Some(l) => format!(" ({})", l),
+            Some(l) => format!(" ({:.3})", l),
             None => String::new(),
         };
 
-        println!("{}{}{}{}", prefix, connector, label, length);
-
-        let new_prefix = if prefix.is_empty() {
-            String::new()
-        } else if is_last {
-            format!("{}    ", prefix)
+        // Print the current node
+        if is_root {
+            println!("{}{}", label, length);
         } else {
-            format!("{}│   ", prefix)
-        };
+            println!("{}{}{}", prefix, label, length);
+        }
 
-        for (i, &child) in node.children.iter().enumerate() {
-            let last = i == node.children.len() - 1;
-            self.print_node(child, &new_prefix, last);
+        let child_count = node.children.len();
+        
+        if child_count == 0 {
+            return;
+        }
+
+        // Calculate spacing for the branches
+        let spacing = " ".repeat(label.len() + length.len());
+        
+        // Print the branch connectors
+        if child_count == 1 {
+            let child_prefix = format!("{}|", spacing);
+            println!("{}", child_prefix);
+            self.print_node_branches(node.children[0], &format!("{}  ", spacing), false);
+        } else if child_count == 2 {
+            // Print branches for two children (the classic look)
+            let mid_spacing = " ".repeat(spacing.len());
+            let branch_line = format!("{}/{}\\", spacing, mid_spacing);
+            println!("{}", branch_line);
+            
+            // Print left child
+            self.print_node_branches(node.children[0], &format!("{}  ", spacing), false);
+            
+            // Print right child  
+            let right_prefix = format!("{}{}", spacing, " ".repeat(spacing.len() + 2));
+            self.print_node_branches(node.children[1], &right_prefix, false);
+        } else {
+            // For more than 2 children, use a simpler format
+            for (i, &child) in node.children.iter().enumerate() {
+                let connector = if i == child_count - 1 { "\\" } else { "|" };
+                let child_prefix = format!("{}{}-- ", spacing, connector);
+                println!("{}", child_prefix);
+                self.print_node_branches(child, &format!("{}    ", spacing), false);
+            }
         }
     }
 }
