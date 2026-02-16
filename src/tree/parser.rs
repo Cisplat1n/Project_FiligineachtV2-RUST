@@ -8,6 +8,7 @@ pub enum ParseError {
     UnexpectedEnd,
     UnexpectedToken(char),
     UnbalancedParentheses,
+    InvalidBranchLength,
 }
 
 
@@ -30,7 +31,7 @@ pub fn parse_nwk(input: &str) -> Result<Tree, ParseError> { //
                     parent: stack.last().copied(), // The parent of the new node is the last element on the stack (the current parent node), or None if the stack is empty.
                     children: Vec::new(), // Initialise the children vector for the new node.
                     label: None, // The label for this node is None, as it is an internal node created by the '(' character.
-                    length_to_parent: None, // <-- match struct
+                    length_to_parent: None, // The branch length to the parent is None for now, as it may be specified later in the Newick format after the label. We will update this if we encounter a colon followed by a branch length value.
                 });
 
                 if let Some(&parent_id) = stack.last() { // If there is a parent node on the stack, we add the new node as a child of that parent.
@@ -44,9 +45,27 @@ pub fn parse_nwk(input: &str) -> Result<Tree, ParseError> { //
                 } // Note: The root node is the first node created when we encounter the first '(' character, and it will be the parent of all other nodes in the tree.
             }
 
-            ')' => { // When we encounter a closing parenthesis, we pop the last node ID from the stack, which means we are done processing the children of that node and are moving back up to its parent.
-                if stack.pop().is_none() { // If the stack is empty when we try to pop, it means we have an unbalanced parenthesis, and we return an error.
-                    return Err(ParseError::UnbalancedParentheses); // Return an error if we encounter a closing parenthesis without a corresponding opening parenthesis.
+            ')' => {
+                let node_id = stack.pop().ok_or(ParseError::UnbalancedParentheses)?;
+
+                // check for branch length
+                if let Some(&':') = chars.peek() {
+                    chars.next(); // consume ':'
+
+                    let mut number = String::new();
+
+                    while let Some(&next) = chars.peek() {
+                        if next == ',' || next == ')' || next == ';' {
+                            break;
+                        }
+                        number.push(chars.next().unwrap());
+                    }
+
+                    let length = number
+                        .parse::<f64>()
+                        .map_err(|_| ParseError::InvalidBranchLength)?;
+
+                    nodes[node_id].length_to_parent = Some(length);
                 }
             }
 
@@ -61,11 +80,31 @@ pub fn parse_nwk(input: &str) -> Result<Tree, ParseError> { //
                 label.push(c); // Push the first character of the label onto the string.
 
                 while let Some(&next) = chars.peek() { // Peek at the next character to see if it is part of the label. If it is a comma, closing parenthesis, or semicolon, we stop reading the label.
-                    if next == ',' || next == ')' || next == ';' { // If the next character is a comma, closing parenthesis, or semicolon, we break out of the loop, as these characters indicate the end of the label.
+                    if next == ',' || next == ')' || next == ';'|| next == ':'{ // If the next character is a comma, closing parenthesis, semicolon, or colon (indicating a branch length), we break out of the loop, as these characters indicate the end of the label.
                         break; // Break out of the loop if we encounter a character that indicates the end of the label.
-                    } // If the next character is not a comma, closing parenthesis, or semicolon, we read it as part of the label and continue.
+                    } // If the next character is not a comma, closing parenthesis, semicolon, or colon, we read it as part of the label and continue.
                     label.push(chars.next().unwrap()); // Push the next character onto the label string and consume it from the iterator.
                 } // After reading the label, we create a new node with the label and add it to the nodes vector. We also update the parent-child relationships based on the current state of the stack.
+                
+                let mut length_to_parent = None; // Variable to hold the branch length to the parent node, if specified in the Newick format.
+
+                if let Some(&':') = chars.peek() { // If the next character is a colon, it indicates that there is a branch length specified for this node. We read the branch length and store it in the length_to_parent variable.
+                    chars.next(); // consume ':'
+
+                    let mut number = String::new(); // Create a new string to hold the characters of the branch length as we read them from the input.
+
+                    while let Some(&next) = chars.peek() { // Peek at the next character to see if it is part of the branch length. If it is a comma, closing parenthesis, or semicolon, we stop reading the branch length.
+                        if next == ',' || next == ')' || next == ';' { // If the next character is a comma, closing parenthesis, or semicolon, we break out of the loop, as these characters indicate the end of the branch length.
+                            break; // Break out of the loop if we encounter a character that indicates the end of the branch length.
+                        } // If the next character is not a comma, closing parenthesis, or semicolon, we read it as part of the branch length and continue.
+                        number.push(chars.next().unwrap()); // Push the next character onto the number string and consume it from the iterator.
+                    } // After reading the branch length as a string, we attempt to parse it as a floating-point number and store it in the length_to_parent variable. If parsing fails, we return an error indicating that the branch length is invalid.
+
+                    length_to_parent = Some( // Attempt to parse the branch length string as a floating-point number. If parsing fails, we return an error indicating that the branch length is invalid.
+                        number.parse::<f64>() // Parse the number string as a floating-point number. If parsing fails, it will return an error, which we map to our custom ParseError::InvalidBranchLength error type.
+                            .map_err(|_| ParseError::InvalidBranchLength)? // If parsing is successful, store it in the length_to_parent variable.
+                    );
+                }
 
                 let id = nodes.len(); // The ID of the new node is the current length of the nodes vector, which will be its index.
 
@@ -73,7 +112,7 @@ pub fn parse_nwk(input: &str) -> Result<Tree, ParseError> { //
                     parent: stack.last().copied(), // The parent of the new node is the last element on the stack (the current parent node), or None if the stack is empty.
                     children: Vec::new(), // Initialise the children vector for the new node, as it may have children if it is an internal node.
                     label: Some(label), // Set the label of the new node to the string we just read from the input.
-                    length_to_parent: None, // <-- match struct
+                    length_to_parent, // <-- match struct
                 });
 
                 if let Some(&parent_id) = stack.last() { // If there is a parent node on the stack, we add the new node as a child of that parent.

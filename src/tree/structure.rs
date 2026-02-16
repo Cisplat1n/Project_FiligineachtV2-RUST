@@ -30,3 +30,45 @@ impl Tree {
         }
     }
 }
+
+
+// Fully AI generated code for printing the tree structure in an ASCII format. This method recursively prints each node and its children, using indentation and connectors to visually represent the tree structure. The label and branch length (if available) are also displayed for each node.
+impl Tree {
+    pub fn print_ascii(&self) {
+        self.print_node(self.root, "", true);
+    }
+
+    fn print_node(&self, node_id: NodeId, prefix: &str, is_last: bool) {
+        let node = &self.nodes[node_id];
+
+        let connector = if prefix.is_empty() {
+            ""
+        } else if is_last {
+            "└── "
+        } else {
+            "├── "
+        };
+
+        let label = node.label.as_deref().unwrap_or("internal");
+
+        let length = match node.length_to_parent {
+            Some(l) => format!(" ({})", l),
+            None => String::new(),
+        };
+
+        println!("{}{}{}{}", prefix, connector, label, length);
+
+        let new_prefix = if prefix.is_empty() {
+            String::new()
+        } else if is_last {
+            format!("{}    ", prefix)
+        } else {
+            format!("{}│   ", prefix)
+        };
+
+        for (i, &child) in node.children.iter().enumerate() {
+            let last = i == node.children.len() - 1;
+            self.print_node(child, &new_prefix, last);
+        }
+    }
+}
