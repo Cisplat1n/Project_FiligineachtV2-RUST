@@ -99,13 +99,28 @@ impl Tree {
     result // Return the resulting vector of node IDs that are ancestors of the given node ID, starting from the given node and going up to the root
     }
 
-    pub fn lca(&self, a: NodeId, b: NodeId) -> Option<NodeId> { // Returns the node ID of the lowest common ancestor (LCA) of the two given node IDs, or None if there is no common ancestor (which should not happen in a well-formed tree)
-        let ancestors_a = self.ancestors(a); // Get the ancestors of node a, which includes a itself and all its ancestors up to the root
-        let ancestors_b = self.ancestors(b);// Get the ancestors of node b, which includes b itself and all its ancestors up to the root
+    pub fn lca(&self, mut a: NodeId, mut b: NodeId) -> Option<NodeId> { // Returns the node ID of the lowest common ancestor (LCA) of the two given node IDs, or None if either node ID is invalid
+        let mut depth_a = self.depth(a); // Get the depth of node a in the tree (number of edges from a to the root)
+        let mut depth_b = self.depth(b); // Get the depth of node b in the tree (number of edges from b to the root)
 
-        ancestors_a // Iterate over the ancestors of node a
-            .into_iter()// Convert the ancestors of node a into an iterator
-            .find(|id| ancestors_b.contains(id)) // Find the first ancestor of node a that is also an ancestor of node b (the lowest common ancestor)
+        // Step 1: Align depths
+        while depth_a > depth_b { // If node a is deeper than node b, move a up to its parent until both nodes are at the same depth
+            a = self.parent(a)?; // Move a up to its parent node ID, returning None if a is the root (no parent)
+            depth_a -= 1;// Decrease the depth of a by 1 for each step up to the parent
+        }
+
+        while depth_b > depth_a { // If node b is deeper than node a, move b up to its parent until both nodes are at the same depth
+            b = self.parent(b)?; // Move b up to its parent node ID, returning None if b is the root (no parent)
+            depth_b -= 1; // Decrease the depth of b by 1 for each step up to the parent
+        }
+
+        // Step 2: Move upward together
+        while a != b { // If a and b are not the same node, move both a and b up to their parents until they meet at the same node (the LCA)
+            a = self.parent(a)?; // Move a up to its parent node ID, returning None if a is the root (no parent)
+            b = self.parent(b)?; // Move b up to its parent node ID, returning None if b is the root (no parent)
+        }
+
+        Some(a) // Return the node ID of the lowest common ancestor (LCA) of the two given node IDs, which is now the same for both a and b
     }
 
     pub fn node_label(&self, node_id: NodeId) -> Option<&str> { // Returns the label of the node with the given node ID, or None if the node has no label
