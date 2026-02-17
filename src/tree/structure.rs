@@ -38,76 +38,78 @@ impl Tree {
         self.print_node_branches(self.root, "", true);
     }
 
-    pub fn is_leaf(&self, node_id: NodeId) -> bool {
-        self.nodes[node_id].children.is_empty()
+    pub fn is_leaf(&self, node_id: NodeId) -> bool { // A node is a leaf if it has no children
+        self.nodes[node_id].children.is_empty() // A node is a leaf if it has no children
     }
 
-    pub fn parent(&self, node_id: NodeId) -> Option<NodeId> {
-        self.nodes[node_id].parent
+    pub fn parent(&self, node_id: NodeId) -> Option<NodeId> { // Returns the parent node ID of the given node ID, or None if it is the root node
+        self.nodes[node_id].parent // Returns the parent node ID of the given node ID, or None if it is the root node
     }
 
-    pub fn children(&self, node_id: NodeId) -> &[NodeId] {
-        &self.nodes[node_id].children
+    pub fn children(&self, node_id: NodeId) -> &[NodeId] { // Returns a slice of child node IDs for the given node ID
+        &self.nodes[node_id].children// Returns a slice of child node IDs for the given node ID
     }
 
-    pub fn leaves(&self) -> Vec<NodeId> {
-        self.nodes
-            .iter()
-            .enumerate()
-            .filter(|(_, node)| node.children.is_empty())
-            .map(|(i, _)| i)
-            .collect()
+    pub fn leaves(&self) -> Vec<NodeId> { // Returns a vector of node IDs that are leaves (nodes with no children)
+        self.nodes // Returns a vector of node IDs that are leaves (nodes with no children)
+            .iter() // Iterate over the nodes in the tree
+            .enumerate() // Enumerate the nodes to get their indices (node IDs)
+            .filter(|(_, node)| node.children.is_empty()) // Filter the nodes to keep only those that are leaves (nodes with no children)
+            .map(|(i, _)| i) // Map the remaining nodes to their indices (node IDs)
+            .collect() // Collect the resulting node IDs into a vector and return it
     }
 
-    pub fn preorder(&self) -> Vec<NodeId> {
-        let mut result = Vec::new();
-        self.preorder_rec(self.root, &mut result);
-        result
+    pub fn preorder(&self) -> Vec<NodeId> { // Returns a vector of node IDs in preorder traversal (visit the current node before its children)
+        let mut result = Vec::new(); // Create a mutable vector to store the result of the preorder traversal
+        self.preorder_rec(self.root, &mut result); // Call the recursive helper function to perform the preorder traversal starting from the root node
+        result // Return the resulting vector of node IDs in preorder traversal
     }
 
-    fn preorder_rec(&self, node_id: NodeId, result: &mut Vec<NodeId>) {
-        result.push(node_id);
+    fn preorder_rec(&self, node_id: NodeId, result: &mut Vec<NodeId>) { // Recursive helper function for preorder traversal, takes the current node ID and a mutable reference to the result vector
+        result.push(node_id); // Add the current node ID to the result vector (visit the current node)
 
-        for &child in &self.nodes[node_id].children {
-            self.preorder_rec(child, result);
+        for &child in &self.nodes[node_id].children { // Iterate over the child node IDs of the current node
+            self.preorder_rec(child, result); // Recursively call the helper function for each child node ID, passing the same result vector to accumulate the traversal order
         }
     }
 
-    pub fn postorder(&self) -> Vec<NodeId> {
-    let mut result = Vec::new();
-    self.postorder_rec(self.root, &mut result);
-    result
+    pub fn postorder(&self) -> Vec<NodeId> { // Returns a vector of node IDs in postorder traversal (visit the children before the current node)
+    let mut result = Vec::new(); // Create a mutable vector to store the result of the postorder traversal
+    self.postorder_rec(self.root, &mut result); // Call the recursive helper function to perform the postorder traversal starting from the root node
+    result // Return the resulting vector of node IDs in postorder traversal
     }
 
-    fn postorder_rec(&self, node_id: NodeId, result: &mut Vec<NodeId>) {
-        for &child in &self.nodes[node_id].children {
-            self.postorder_rec(child, result);
+    fn postorder_rec(&self, node_id: NodeId, result: &mut Vec<NodeId>) { // Recursive helper function for postorder traversal, takes the current node ID and a mutable reference to the result vector
+        for &child in &self.nodes[node_id].children { // Iterate over the child node IDs of the current node
+            self.postorder_rec(child, result); // Recursively call the helper function for each child node ID, passing the same result vector to accumulate the traversal order
         }
 
-        result.push(node_id);
+        result.push(node_id); // Add the current node ID to the result vector after visiting all its children (visit the current node)
     }
 
-    pub fn ancestors(&self, node_id: NodeId) -> Vec<NodeId> {
-    let mut result = Vec::new();
-    let mut current = Some(node_id);
+    pub fn ancestors(&self, node_id: NodeId) -> Vec<NodeId> { // Returns a vector of node IDs that are ancestors of the given node ID, starting from the given node and going up to the root
+    let mut result = Vec::new(); // Create a mutable vector to store the result of the ancestors traversal
+    let mut current = Some(node_id); // Start with the given node ID as the current node
 
-    while let Some(id) = current {
-        result.push(id);
-        current = self.nodes[id].parent;
+    while let Some(id) = current { // Loop while there is a current node ID (not None)
+        result.push(id); // Add the current node ID to the result vector (visit the current node)
+        current = self.nodes[id].parent; // Update the current node ID to its parent node ID for the next iteration (move up to the parent node)
     }
 
-    result
+    result // Return the resulting vector of node IDs that are ancestors of the given node ID, starting from the given node and going up to the root
     }
 
-    pub fn lca(&self, a: NodeId, b: NodeId) -> Option<NodeId> {
-        let ancestors_a = self.ancestors(a);
-        let ancestors_b = self.ancestors(b);
+    pub fn lca(&self, a: NodeId, b: NodeId) -> Option<NodeId> { // Returns the node ID of the lowest common ancestor (LCA) of the two given node IDs, or None if there is no common ancestor (which should not happen in a well-formed tree)
+        let ancestors_a = self.ancestors(a); // Get the ancestors of node a, which includes a itself and all its ancestors up to the root
+        let ancestors_b = self.ancestors(b);// Get the ancestors of node b, which includes b itself and all its ancestors up to the root
 
-        ancestors_a
-            .into_iter()
-            .find(|id| ancestors_b.contains(id))
+        ancestors_a // Iterate over the ancestors of node a
+            .into_iter()// Convert the ancestors of node a into an iterator
+            .find(|id| ancestors_b.contains(id)) // Find the first ancestor of node a that is also an ancestor of node b (the lowest common ancestor)
     }
 
+
+    // AI generated ASCII tree printing method
     fn print_node_branches(&self, node_id: NodeId, prefix: &str, is_root: bool) {
         let node = &self.nodes[node_id];
         let label = node.label.as_deref().unwrap_or("internal");
