@@ -108,6 +108,28 @@ impl Tree {
             .find(|id| ancestors_b.contains(id)) // Find the first ancestor of node a that is also an ancestor of node b (the lowest common ancestor)
     }
 
+    pub fn node_label(&self, node_id: NodeId) -> Option<&str> { // Returns the label of the node with the given node ID, or None if the node has no label
+    self.nodes[node_id].label.as_deref() // Return the label of the node with the given node ID as an Option<&str>, converting from Option<String> using as_deref()
+    }
+
+    pub fn taxa(&self) -> Vec<&str> { // Returns a vector of labels for the leaf nodes (taxa) in the tree, filtering out any nodes that do not have labels
+    self.leaves() // Get the node IDs of the leaf nodes in the tree
+        .into_iter() // Convert the leaf node IDs into an iterator
+        .filter_map(|id| self.nodes[id].label.as_deref()) // For each leaf node ID, get its label as an Option<&str> and filter out any nodes that do not have labels (None values)
+        .collect() // Collect the resulting labels of the leaf nodes into a vector and return it
+    }
+
+    pub fn depth(&self, node_id: NodeId) -> usize { // Returns the depth of the node with the given node ID, defined as the number of edges from the node to the root (the root has depth 0)
+    let mut depth = 0; // Initialise the depth counter to 0
+    let mut current = self.parent(node_id); // Start with the parent of the given node ID as the current node (the root will have None as its parent)
+
+    while let Some(p) = current { // Loop while there is a current node ID (not None)
+        depth += 1; // Increment the depth counter for each edge we move up to the parent node
+        current = self.parent(p); // Update the current node ID to its parent node ID for the next iteration (move up to the parent node)
+    }
+
+    depth // Return the calculated depth of the node with the given node ID, which is the number of edges from the node to the root
+    }   
 
     // AI generated ASCII tree printing method
     fn print_node_branches(&self, node_id: NodeId, prefix: &str, is_root: bool) {
