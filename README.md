@@ -22,33 +22,20 @@ quartet-rs/
 │   ├── lib.rs                  # Public API
 │   ├── main.rs                 # Binary entry point
 │   │
-│   ├── tree/
+│   ├── tree/                   ✅COMPLETE FOR NOW! 
 │   │   ├── mod.rs
 │   │   ├── parser.rs           # Newick parser
-│   │   ├── structure.rs        # Tree data structure
+│   │   ├── structure.rs        # Tree data structure    
 │   │   └── operations.rs       # Prune, root, distance
 │   │
 │   ├── quartet/
 │   │   ├── mod.rs
 │   │   ├── extractor.rs        # Generate quartets
-│   │   ├── topology.rs         # Extract topology
-│   │   └── methods.rs          # Distance/Parsimony/ML
+│   │   ├── export.rs           # Extract topology
+│   │   ├── aggregrate.rs       # 
+│   │   ├── classify.rs         #   
+│   │   └── root.rs             # 
 │   │
-│   ├── resolution/
-│   │   ├── mod.rs
-│   │   ├── threshold.rs        # Threshold resolution
-│   │   ├── cycle.rs            # Cycle detection
-│   │   └── delta.rs            # Delta calculations
-│   │
-│   ├── rooting/
-│   │   ├── mod.rs
-│   │   ├── mad.rs              # MAD rooting
-│   │   ├── reconciliation.rs   # Species tree reconciliation
-│   │   └── discordance.rs      # Discordance-based
-│   │
-│   ├── export/
-│   │   ├── mod.rs
-│   │   └── squirrel.rs         # SQUIRREL format export
 │   │
 │   └── utils/
 │       ├── mod.rs
@@ -88,9 +75,6 @@ quartet-rs/
 
 - Streaming tree processing (constant memory)
 - Parallel quartet extraction and resolution
-- SIMD-optimized cycle detection
-- Multiple rooting strategies (MAD, outgroup, reconciliation)
-- Lock-free data aggregation
 - Zero-copy data passing
 
 ## Output
